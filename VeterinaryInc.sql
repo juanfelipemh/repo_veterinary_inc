@@ -57,55 +57,53 @@ CREATE PROCEDURE calculateAllTotalCosts
 AS
 BEGIN
 SELECT description, SUM(cost) AS totalByService
-FROM service AS s, pet_service AS ps
-WHERE s.idService = ps.idService
-GROUP BY s.description
-ORDER BY s.description
+FROM service, pet_service
+WHERE service.idService = pet_service.idService
+GROUP BY service.description
+ORDER BY service.description
 END
 
 CREATE PROCEDURE serviceDetails
 AS
 BEGIN
-SELECT ps.idPetService, ps.serviceDate, p.idPet, p.name, s.description, s.cost, pr.idPerson, pr.name, pr.lastname, pr.phone
-FROM pet_service as ps
-INNER JOIN pet as p
-ON ps.idPet = p.idPet
-INNER JOIN service as s
-ON ps.idService = s.idService
-INNER JOIN person AS pr
-ON p.idPerson = pr.idPerson
+SELECT pet_service.idPetService, pet_service.serviceDate, pet.idPet, pet.name, service.description, service.cost, person.idPerson, person.name, person.lastname, person.phone
+FROM pet_service
+INNER JOIN pet
+ON pet_service.idPet = pet.idPet
+INNER JOIN service
+ON pet_service.idService = service.idService
+INNER JOIN person
+ON pet.idPerson = person.idPerson
 ORDER BY idPetService
 END
 
 CREATE PROCEDURE getPersonInformationById (@idPerson int)
 AS
 BEGIN
-SELECT p.idPerson, p.name, p.lastname, pt.idPet, pt.name
-FROM pet AS pt
-INNER JOIN person AS p
-ON pt.idPerson = p.idPerson
-WHERE p.idPerson = @idPerson
-ORDER BY pt.idPet
+SELECT person.idPerson, person.name, person.lastname, pet.idPet, pet.name
+FROM pet
+INNER JOIN person
+ON pet.idPerson = person.idPerson
+WHERE person.idPerson = @idPerson
+ORDER BY pet.idPet
 END
 
-CREATE PROCEDURE ownersOfPets
+CREATE PROCEDURE getAllInformationsOwners
 AS
 BEGIN
-SELECT p.idPerson, p.name, p.lastname, pt.idPet, pt.name
-FROM pet AS pt
-INNER JOIN person AS p
-ON pt.idPerson = p.idPerson
-ORDER BY p.idPerson
+SELECT person.idPerson, person.name, person.lastname, pet.idPet, pet.name
+FROM pet
+INNER JOIN person
+ON pet.idPerson = person.idPerson
+ORDER BY person.idPerson
 END
 
 CREATE PROCEDURE costsPerDate (@serviceDate date)
 AS
 BEGIN
-SELECT description, SUM(cost) AS totalService
-FROM service AS s
-INNER JOIN pet_service AS ps 
-ON s.idService = ps.idService
-WHERE serviceDate = @serviceDate
-GROUP BY s.description
-ORDER BY s.description
+SELECT service.description, SUM(cost) AS totalService
+FROM service, pet_service
+WHERE service.idService = pet_service.idService AND serviceDate = @serviceDate
+GROUP BY service.description
+ORDER BY service.description
 END
