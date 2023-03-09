@@ -3,7 +3,7 @@ CREATE DATABASE VeterinaryInc;
 use VeterinaryInc;
 
 create table person (
-idPerson int primary key identity(1,1) not null,
+idd_person int primary key identity(1,1) not null,
 name varchar(50) not null,
 lastname varchar(50) not null,
 email varchar(100) not null,
@@ -13,22 +13,22 @@ confirmed bit default 1
 );
 
 create table pet (
-idPet int primary key identity(1,1) not null,
+id_pet int primary key identity(1,1) not null,
 name varchar(50) not null,
 age int not null,
-idPerson int foreign key references Person(idPerson)
+id_person int foreign key references person(id_person)
 );
 
 create table service (
-idService int primary key identity(1,1) not null,
+id_service int primary key identity(1,1) not null,
 description varchar(150) not null,
 cost int not null
 );
 
 create table pet_service (
-idPetService int primary key identity(1,1) not null,
-idPet int foreign key references Pet(idPet),
-idService int foreign key references Service(idService),
+id_pet_service int primary key identity(1,1) not null,
+id_pet int foreign key references pet(id_pet),
+id_service int foreign key references Service(id_service),
 serviceDate date not null
 );
 
@@ -56,9 +56,9 @@ VALUES (1,1,'2023-01-05'), (1,3,'2023-01-05'), (3,2,'2023-01-05'), (3,1,'2023-01
 CREATE PROCEDURE calculateAllTotalCosts
 AS
 BEGIN
-SELECT description, SUM(cost) AS totalByService
+SELECT description, SUM(cost) AS totalBilledByService
 FROM service, pet_service
-WHERE service.idService = pet_service.idService
+WHERE service.id_service = pet_service.id_service
 GROUP BY service.description
 ORDER BY service.description
 END
@@ -66,44 +66,64 @@ END
 CREATE PROCEDURE serviceDetails
 AS
 BEGIN
-SELECT pet_service.idPetService, pet_service.serviceDate, pet.idPet, pet.name, service.description, service.cost, person.idPerson, person.name, person.lastname, person.phone
+SELECT pet_service.id_pet_service, pet_service.serviceDate, pet.id_pet AS IdPet, pet.name AS petName, service.description AS ServiceDescription, service.cost AS ServiceCost, person.id_person, person.name AS personName, person.lastname AS personLastName, person.phone as phoneNumber
 FROM pet_service
 INNER JOIN pet
-ON pet_service.idPet = pet.idPet
+ON pet_service.id_pet = pet.id_pet
 INNER JOIN service
-ON pet_service.idService = service.idService
+ON pet_service.id_service = service.id_service
 INNER JOIN person
-ON pet.idPerson = person.idPerson
-ORDER BY idPetService
+ON pet.id_person = person.id_person
+ORDER BY id_pet_service
 END
 
-CREATE PROCEDURE getPersonInformationById (@idPerson int)
+CREATE PROCEDURE getPersonInformationById (@id_person int)
 AS
 BEGIN
-SELECT person.idPerson, person.name, person.lastname, pet.idPet, pet.name
+SELECT person.id_person, person.name as personName, person.lastname AS personLastName, pet.id_pet, pet.name AS petName
 FROM pet
 INNER JOIN person
-ON pet.idPerson = person.idPerson
-WHERE person.idPerson = @idPerson
-ORDER BY pet.idPet
+ON pet.id_person = person.id_person
+WHERE person.id_person = @id_person
+ORDER BY pet.id_pet
 END
 
 CREATE PROCEDURE getAllInformationsOwners
 AS
 BEGIN
-SELECT person.idPerson, person.name, person.lastname, pet.idPet, pet.name
+SELECT person.id_person, person.name AS personName, person.lastname AS personLastName, pet.id_pet, pet.name AS petName
 FROM pet
 INNER JOIN person
-ON pet.idPerson = person.idPerson
-ORDER BY person.idPerson
+ON pet.id_person = person.id_person
+ORDER BY person.id_person
 END
 
 CREATE PROCEDURE costsPerDate (@serviceDate date)
 AS
 BEGIN
-SELECT service.description, SUM(cost) AS totalService
+SELECT service.description, SUM(cost) AS totalByService
 FROM service, pet_service
-WHERE service.idService = pet_service.idService AND serviceDate = @serviceDate
+WHERE service.id_service = pet_service.id_service AND serviceDate = @serviceDate
 GROUP BY service.description
 ORDER BY service.description
 END
+
+
+-- INFORMATION AND STORED PROCEDURES IMPLEMENTED IN BACKEND_ARCHITECTURE --
+INSERT INTO person 
+VALUES ('Calle 70a #42-17',1,'felipe@gmail.com','Muñoz','Felipe',319628085),
+('Calle 50a #42-17',1,'aleja@gmail.com','Sierra','Aleja',54846543),
+('Cra 96 #42-17',0,'pitero@gmail.com','El gato','Pitero',84543543);
+
+
+CREATE PROCEDURE getPersonInformation
+AS
+BEGIN
+SELECT * FROM person
+END
+
+CREATE PROCEDURE addPerson(@address varchar(255), @confirmed bit, @email varchar(255), @lastname varchar(255), @name varchar(255), @phone bigint)
+AS
+INSERT INTO person
+VALUES (@address, @confirmed, @email, @lastname, @name, @phone)
+GO
